@@ -1,0 +1,12 @@
+name: Fluffiness
+type: theme
+description: "A cuddly theme that offers extra fluffiness."
+core_version_requirement: ">=9.2"
+libraries:
+  - fluffiness/global-styling
+base theme: stable9
+regions:
+  header: "Header"
+  content: "Content"
+  sidebar_first: "Sidebar first"
+  footer: "Footer"
