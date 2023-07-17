@@ -1,0 +1,7 @@
+mymodule.hello:
+  path: "/mymodule/hello/{name}"
+  defaults:
+    _controller: '\Drupal\mymodule\Controller\HelloController::helloPage'
+    _title: "xyzzz"
+  requirements:
+    _permission: "read permission"
