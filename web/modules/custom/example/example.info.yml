@@ -1,0 +1,6 @@
+name: "Example Module"
+type: module
+description: "A custom module to learn routing in Drupal 10"
+package: Custom
+core_version_requirement: ^9 || ^10
+version: "1.0"
