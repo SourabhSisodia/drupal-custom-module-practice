@@ -7,10 +7,15 @@
 
 namespace Drupal\customform\Form;
 
-use Drupal\Core\Form\ConfigFormBase;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\HtmlCommand;
+use Drupal\Core\Ajax\MessageCommand;
+use Drupal\Core\Ajax\OpenModalDialogCommand;
+use Drupal\Core\Ajax\ReplaceCommand;
+use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 
-class BasicConfigForm extends ConfigFormBase
+class BasicConfigForm extends FormBase
 {
   /**
    * {@inheritdoc}
@@ -53,18 +58,18 @@ class BasicConfigForm extends ConfigFormBase
       '#type' => 'textfield',
       '#title' => $this->t('Phone number'),
       '#size' => 13,
-      '#pattern' => '[+][9][1]([0-9]+){10}',
       '#description' => $this->t('Enter country code followed by 10 digit phone number.'),
       '#required' => TRUE,
       '#maxlength' => 13,
+      '#suffix' => '<div id="error-phone-number" class="custom-error"></div>',
     ];
     // Phone Number render element
     $form['email'] = [
       '#type' => 'email',
       '#title' => $this->t('Email Id'),
       '#size' => 100,
-      '#pattern' => '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$',
       '#required' => TRUE,
+      '#suffix' => '<div id="error-email" class="custom-error"></div>',
     ];
     // Radio button element for the gender
     $form['gender'] = [
@@ -75,9 +80,12 @@ class BasicConfigForm extends ConfigFormBase
       '#required' => TRUE,
     ];
     // Submit button element.
-    $form['submit'] = [
-      '#type' => 'submit',
+    $form['actions'] = [
+      '#type' => 'button',
       '#value' => $this->t('submit'),
+      '#ajax' => [
+        'callback' => '::ajaxValidation'
+      ]
     ];
     // node id.
     $form['nid'] = [
@@ -90,36 +98,47 @@ class BasicConfigForm extends ConfigFormBase
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, FormStateInterface $form_state)
+
+  public function ajaxValidation(array &$form, FormStateInterface $form_state)
   {
+    // A boolean value which stores form validation state.
+    $valid = TRUE;
+    $response = new AjaxResponse();
+    // Reseting error message.
+    $response->addCommand(new HtmlCommand('.custom-error', ''));
     // Validating phone number
     $phone_number = $form_state->getValue('phone_number');
     if (!preg_match('/[+][9][1]([0-9]+){10}/', $phone_number)) {
-      $form_state->setErrorByName('phone_number', $this->t('Add +91 followed by 10 digit number'));
+      $response->addCommand(new HtmlCommand(
+        '#error-phone-number',
+        $this->t('Add +91 followed by 10 digit number')
+      ));
+      $valid = FALSE;
     }
 
     // Validating email address
     $email_address = $form_state->getValue('email');
-    $email_domain = explode('@', $email_address)[1];
-    if (!(\Drupal::service('email.validator')->isValid($email_address))) {
-      $form_state->setErrorByName('email', $this->t(
-        'It appears that %mail is not a valid email. Please try again.',
-        ['%mail' => $email_address]
-      ));
-    } elseif (explode('.', $email_domain)[1] != 'com') {
-      $form_state->setErrorByName('email', $this->t('Only .com domains extension is allowed.'));
-    } elseif (!$this->isPublicDomain(explode('.', $email_domain)[0])) {
-      $form_state->setErrorByName('email', $this->t('%domain is not public domain.', ['%domain' => $email_domain]));
+    if (!preg_match('/^[a-zA-z0-9._-]+@(gmail|outlook|yahoo).com$/', $email_address)) {
+      $response->addCommand(new HtmlCommand('#error-email', $this->t('Enter email in RFC format,
+        only public domain (like Yahoo, Gmail, Outlook, etc.) and end with .com')));
+      $valid = FALSE;
     }
+    if ($valid) {
+      $response->addCommand(new MessageCommand('Form submitted successfully', NULL));
+    }
+    return $response;
   }
+  public function validateForm(array &$form, FormStateInterface $form_state)
+  {
+    parent::validateForm($form, $form_state);
+  }
+
 
   /**
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state)
   {
-    $submitted_name = $form_state->getValue('full_name');
-    $this->messenger()->addMessage($this->t("Congrats @user Your Form submitted Successfully", ['@user' => $submitted_name]));
   }
 
   /**
@@ -131,21 +150,4 @@ class BasicConfigForm extends ConfigFormBase
    *  @return bool
    *    returns true if email contain public domain.
    */
-  private function isPublicDomain(string $email_domain)
-  {
-    $public_domains = [
-      'yahoo',
-      'gmail',
-      'outlook',
-      'aol',
-      'proton',
-    ];
-
-    foreach ($public_domains as $domain) {
-      if ($domain == $email_domain) {
-        return true;
-      }
-    }
-    return false;
-  }
 }
