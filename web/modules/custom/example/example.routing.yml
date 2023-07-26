@@ -5,3 +5,4 @@ example.content:
     _title: "Hello World"
   requirements:
     _permission: "access"
+    _role: "administrator+content_editor"
