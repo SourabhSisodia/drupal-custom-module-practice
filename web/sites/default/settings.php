@@ -860,7 +860,7 @@ $settings['migrate_node_migrate_type_classic'] = FALSE;
 # if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
 #   include $app_root . '/' . $site_path . '/settings.local.php';
 # }
-$databases['default']['default'] = array (
+$databases['default']['default'] = array(
   'database' => 'drupal10',
   'username' => 'drupal10',
   'password' => 'drupal10',
@@ -872,4 +872,4 @@ $databases['default']['default'] = array (
   'driver' => 'mysql',
   'autoload' => 'core/modules/mysql/src/Driver/Database/mysql/',
 );
-$settings['config_sync_directory'] = 'sites/default/files/config_Q386XrIU6r8XrH_gnFWdFIOS-mzrN0s7Cw_8dLLcz9OHL-qdP8TzAx5uNzOTiCv_9E2bcNTSjw/sync';
+$settings['config_sync_directory'] = '../config/sync';
